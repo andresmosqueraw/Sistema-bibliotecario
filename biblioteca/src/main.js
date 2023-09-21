@@ -112,6 +112,29 @@ function validateLogin(data) {
   });
 }
 
+// 1. Escuchar el evento 'register'
+electronIpcMain.on('register', (event, data) => {
+  registerUser(data, event);
+});
+
+// 2. Función para registrar al usuario
+function registerUser(data, event) {
+  const { username, name, email, password } = data;
+  const sql = 'INSERT INTO usuarios (usuario, nombre, correo, contrasena, permiso, imagen) VALUES (?, ?, ?, ?, ?, ?)';
+
+  // Establecer permiso por defecto a "admin" y imagen a null
+  db.query(sql, [username, name, email, password, 'admin', null], (error) => {
+    if (error) {
+      console.log(error);
+      // Enviar un mensaje de error al renderer process
+      event.reply('register-response', { success: false, message: 'Error durante el registro. Inténtalo nuevamente.' });
+    } else {
+      // Enviar un mensaje de éxito al renderer process
+      event.reply('register-response', { success: true, message: 'Registro exitoso. Por favor, inicia sesión.' });
+    }
+  });
+}
+
 electronIpcMain.on('logout', (event, confirm) => {
   validateLogout(confirm);
 });
